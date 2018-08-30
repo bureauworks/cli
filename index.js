@@ -4,7 +4,7 @@ const request = require('request')
 const fs = require('fs')
 const download = require('download')
 const path = require('path')
-const url = require('url');
+const url = require('url')
 const config = require('./config-local.json')
 
 function req(method, endpoint, callback, body, formData, contentType) {

@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const program = require('commander')
+const bw = require('./index')
+
+function list(val) {
+	return val.split(',')
+}
+
+program
+	.version('1.0.0', '-v, --version')
+	.usage('<command> [options]')
+
+program
+	.command('languages')
+	.description('Lists the ISO codes of the available languages')
+	.action(function() { bw.languages() })
+
+program
+	.command('timezones')
+	.description('Lists timezones available in Bureau Works')
+	.action(function() { bw.timezones() })
+
+program
+	.command('services')
+	.description('All the Services and IDs available to request projects in Bureau Works')
+	.action(function() { bw.services() })
+
+program
+	.command('create')
+	.description('Creates a new Project in Bureau Works, returns a JSON string  with IDs and relevant information.')
+	.option('-r, --reference <reference>', 'Project reference, a string value that you can use to identify this project')
+	.option('-l, --language <lang>', 'Project source language')
+	.option('-t, --target <langs>', 'Project target languages, ISO codes separated by commas', list)
+	.option('-s, --services <services>', 'Long[] with the Service IDs, .e.g, 1 for translation, 3 for transcription; separate with commas', list)
+	.option('-n, --note <note>', 'A descriptive note')
+	.option('-d, --delivery <longValue>', 'Desired delivery date', parseInt)
+	.action(function(cmd, options) { handleCreate(cmd, options) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx create -r \'A reference code\' -l en_us -t pt_br,es,ru_ru,de_de,fr_fr,it_it -s 1 -n \'Project notes, special instructions, etc.\' -d 1535661374000')
+		console.log()
+})
+
+program
+	.command('upload')
+	.description('Uploads a file to a project being prepared for production and quoting in Bureau Works, returns a JSON with the Project and Job ID information.')
+	.option('-p, --project <projectId>', 'The Project ID')
+	.option('-s, --service_item <sid>', 'Service Item ID')
+	.option('-f, --file <file>', 'The file in the current filesystem')
+	.action(function(cmd, options) { handleUpload(cmd, options) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx upload -p 17530 -s 23207 ./files/filename.docx')
+		console.log()
+})
+
+program
+	.command('ready')
+	.description('Flags a project as READY, which means you have finished upload files and the system will now quote the project. Returns a JSON with the costs breakdown.')
+	.option('-p, --project <projectId>', 'The Project ID')
+	.action(function(cmd) { handleReady(cmd) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx ready -p 17532')
+		console.log()
+})
+
+program
+	.command('approve')
+	.description('Approves a Project in Bureau Works')
+	.option('-p, --project <projectId>', 'The Project ID')
+	.action(function(cmd) { handleApprove(cmd) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx approve -p 17532')
+		console.log()
+})
+
+program
+	.command('cancel')
+	.description('Cancels a Project in Bureau Works')
+	.option('-p, --project <projectId>', 'The Project ID')
+	.action(function(cmd) { handleCancel(cmd) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx cancel -p 17532')
+		console.log()
+})
+
+program.parse(process.argv)
+
+function handleCreate(cmd) {
+	bw.createProject(cmd.reference, cmd.language, cmd.target, cmd.services, cmd.notes, cmd.delivery)
+}
+
+function handleUpload(cmd) {
+	bw.uploadFile(cmd.project, cmd.service_item, cmd.file)
+}
+
+function handleReady(cmd) {
+	bw.readyProject(cmd.project)
+}
+
+function handleApprove(cmd) {
+	bw.approveProject(cmd.project)
+}
+
+function handleCancel(cmd) {
+	bw.cancelProject(cmd.project)
+}
