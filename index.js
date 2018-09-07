@@ -1,11 +1,12 @@
 'use strict'
 
-const request = require('request')
+const request_promise = require('request-promise')
 const fs = require('fs')
 const download = require('download')
 const path = require('path')
 const url = require('url')
-const config = require('./config-local.json')
+const homedir = require('os').homedir()
+const config = require(homedir + '/.bw/config.json')
 
 function req(method, endpoint, callback, body, formData, contentType) {
 
@@ -18,6 +19,7 @@ function req(method, endpoint, callback, body, formData, contentType) {
 		method: method,
 		body: body,
 		formData: formData,
+		resolveWithFullResponse: true,
 		headers: {
 			'Content-Type': contentType,
 			'User-Agent': 'BWX',
@@ -26,9 +28,9 @@ function req(method, endpoint, callback, body, formData, contentType) {
 	}
 
 	if (!callback) {
-		request(options, default_callback)
+		request_promise(options, default_callback)
 	} else {
-		request(options, callback)
+		request_promise(options, callback)
 	}
 }
 
@@ -40,37 +42,41 @@ function default_callback (error, response, body) {
 	console.log(body)
 }
 
-function login () {
+function login (configInput) {
 
 	let data = {
-		'accesskey': config.api_id,
-		'secretAccesskey': config.api_secret
+		'accesskey': configInput.api_id,
+		'secretAccesskey': configInput.api_secret
 	}
 
 	let options = {
-		uri: config.url + '/api/pub/v1/login',
+		uri: configInput.url + '/api/pub/v1/login',
 		body: JSON.stringify(data),
 		method: 'POST',
+		resolveWithFullResponse: true,
 		headers: {
 			'Content-Type': 'application/json'
 		}
 	}
 
-	request(options, function (error, response) {
+	rp(options).then(function (response) {
+		configInput.api_token = response.headers['x-auth-token']
 		
-		if (error) {
-			console.error('Something went wrong: ' + error)
-			return
+		if (!fs.existsSync(homedir + '/.bw')){
+			fs.mkdirSync(homedir + '/.bw')
 		}
-		
-		config.api_token = response.headers['x-auth-token']
 
-		fs.writeFileSync('./config.json', JSON.stringify(config, null, 2))
-	})
+		fs.writeFileSync(homedir + '/.bw/config.json', JSON.stringify(configInput, null, 2))
+
+		console.log('Authentication successfull, config file created in ~/.bw/config.json')
+    })
+    .catch(function (err) {
+        console.log(err)
+    })
 }
 
-exports.login = function () {
-	login()
+exports.login = function (config) {
+	login(config)
 }
 
 exports.languages = function () {
@@ -144,6 +150,10 @@ exports.projectsByStatus = function (status) {
 
 exports.getProject = function (projectId) {
 	req('GET', `/api/pub/v1/project/${projectId}`)
+}
+
+exports.projectCosts = function (projectId) {
+	req('GET', `/api/pub/v1/project/${projectId}/cost`)
 }
 
 exports.newDueDate = function (projectId, dueDate) {
