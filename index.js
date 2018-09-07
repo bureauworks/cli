@@ -9,7 +9,7 @@ const homedir = require('os').homedir()
 
 function req(method, endpoint, callback, body, formData, contentType) {
 
-	const config = homedir + '/.bwx/config.json'
+	let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
 
 	if (!contentType) {
 		contentType = 'application/json'
