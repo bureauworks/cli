@@ -6,9 +6,10 @@ const download = require('download')
 const path = require('path')
 const url = require('url')
 const homedir = require('os').homedir()
-const config = require(homedir + '/.bw/config.json')
 
 function req(method, endpoint, callback, body, formData, contentType) {
+
+	const config = homedir + '/.bwx/config.json'
 
 	if (!contentType) {
 		contentType = 'application/json'
@@ -59,16 +60,17 @@ function login (configInput) {
 		}
 	}
 
-	rp(options).then(function (response) {
+	request_promise(options).then(function (response) {
+		
 		configInput.api_token = response.headers['x-auth-token']
 		
-		if (!fs.existsSync(homedir + '/.bw')){
-			fs.mkdirSync(homedir + '/.bw')
+		if (!fs.existsSync(homedir + '/.bwx')){
+			fs.mkdirSync(homedir + '/.bwx')
 		}
 
-		fs.writeFileSync(homedir + '/.bw/config.json', JSON.stringify(configInput, null, 2))
+		fs.writeFileSync(homedir + '/.bwx/config.json', JSON.stringify(configInput, null, 2))
 
-		console.log('Authentication successfull, config file created in ~/.bw/config.json')
+		console.log('Authentication successfull, config file created in ~/.bwx/config.json')
     })
     .catch(function (err) {
         console.log(err)

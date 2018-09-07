@@ -23,20 +23,20 @@ Make the CLI friends with your shell environment
 
 ```chmod +x cli.js```
 
-Run the Configuration once - this will create a `config.json` file in your `~/.bw/` directory:
+Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory:
 
 ```./cli.js config```
 
-You can use `npm link` to allow us to locally ‘symlink a package folder’. If you do so, you can call the CLI anywhere in your system with the `bw` shorthand:
+You can use `npm link` to allow us to locally ‘symlink a package folder’. If you do so, you can call the CLI anywhere in your system with the `bwx` shorthand:
 
-```bw timezones```
+```bwx timezones```
 
-```bw languages```
+```bwx languages```
 
 For the help, use:
 
-```bw --help```
+```bwx --help```
 
 Or for specific commands, for example, the project creation command:
 
-```bw create --help```
+```bwx create --help```
