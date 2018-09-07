@@ -1,6 +1,14 @@
 # Bureau Works API Command Line Interface and NodeJS module
 This repository contains a JavaScript library that can be used to access the Bureau Works API. It also includes a CLI written in NodeJS that facilitates API calls from the command line.
 
+## Requirements
+
+You need a Bureau Works account and API KEY. Please visit https://www.bureauworks.com to get yours!
+
+You will also need NodeJS and git installed in your environment.
+
+For API reference, please visit https://dev.bureau.works
+
 ## Installation
 
 Clone this repository:
@@ -24,3 +32,11 @@ You can use `npm link` to allow us to locally ‘symlink a package folder’. If
 ```bw timezones```
 
 ```bw languages```
+
+For the help, use:
+
+```bw --help```
+
+Or for specific commands, for example, the project creation command:
+
+```bw create --help```
