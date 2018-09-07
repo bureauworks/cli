@@ -13,30 +13,36 @@ For API reference, please visit https://dev.bureau.works
 
 Clone this repository:
 
-```git clone https://github.com/bureauworks/cli.git```
+```$ git clone https://github.com/bureauworks/cli.git```
 
-Then install `npm` dependencies
+Install dependencies
 
-```npm i```
+```$ npm i```
 
 Make the CLI friends with your shell environment
 
-```chmod +x cli.js```
+```$ chmod +x cli.js```
 
 Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory:
 
-```./cli.js config```
+```$ ./cli.js config```
+
+You should see a message confirming the file creation now test the API with the CLI!
+
+```$ ./cli.js services```
+
+```$ ./cli.js languages```
 
 You can use `npm link` to allow us to locally ‘symlink a package folder’. If you do so, you can call the CLI anywhere in your system with the `bwx` shorthand:
 
-```bwx timezones```
+```$ bwx timezones```
 
-```bwx languages```
+```$ bwx languages```
 
 For the help, use:
 
-```bwx --help```
+```$ bwx --help```
 
 Or for specific commands, for example, the project creation command:
 
-```bwx create --help```
+```$ bwx create --help```
