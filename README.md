@@ -23,7 +23,7 @@ Make the CLI friends with your shell environment
 
 ```$ chmod +x cli.js```
 
-Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory:
+Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory. You can get an API KEY at https://bureau.works/#/my/account once you log in the system.
 
 ```$ ./cli.js config```
 
