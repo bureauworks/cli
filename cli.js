@@ -59,7 +59,7 @@ program
 	.action(function(cmd, options) { handleUpload(cmd, options) }).on('--help', function() {
 		console.log('  Example:')
 		console.log()
-		console.log('    $ bwx upload -p 17530 -s 23207 ./files/filename.docx')
+		console.log('    $ bwx upload -p 17530 -s 23207 -f ./files/filename.docx')
 		console.log()
 })
 
