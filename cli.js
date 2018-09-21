@@ -170,7 +170,7 @@ program
 	.description('Downloads a file given a Job ID')
 	.option('-p, --project <projectId>', 'The Project ID')
 	.option('-j, --job <jobId>', 'The Job ID')
-	.option('-d, --destination', 'Optional, if passed to the function will save the file in the given directory')
+	.option('-d, --destination <directory>', 'Optional, if passed to the function will save the file in the given directory')
 	.action(function(cmd) { handleDownload(cmd) }).on('--help', function() {
 		console.log('  Example:')
 		console.log()
@@ -184,7 +184,7 @@ program
 	.option('-p, --project <projectId>', 'The Project ID')
 	.option('-s, --service_item <sid>', 'The Service Item ID')
 	.option('-f, --filename <filename>', 'The filename, including any preceding path components, e.g., /pt_br/filename.docx')
-	.option('-d, --destination', 'Optional, if passed to the function will save the file in the given directory')
+	.option('-d, --destination <directory>', 'Optional, if passed to the function will save the file in the given directory')
 	.action(function(cmd) { handleDownloadByFilename(cmd) }).on('--help', function() {
 		console.log('  Example:')
 		console.log()
