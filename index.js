@@ -7,7 +7,8 @@ const path = require('path')
 const url = require('url')
 const homedir = require('os').homedir()
 
-function req(method, endpoint, callback, body, formData, contentType) {
+// Binary responses, use encoding=null, otherwise default is utf8
+function req(method, endpoint, callback, body, formData, contentType, encoding) {
 
 	let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
 
@@ -19,6 +20,7 @@ function req(method, endpoint, callback, body, formData, contentType) {
 		uri: config.url + endpoint,
 		method: method,
 		body: body,
+		encoding: encoding,
 		formData: formData,
 		resolveWithFullResponse: true,
 		headers: {
@@ -130,6 +132,16 @@ exports.uploadFile = function (projectId, serviceItemId, file) {
 	req('POST', `/api/pub/v1/project/${projectId}/file/${serviceItemId}`, null, null, formData, null)
 }
 
+exports.uploadContinuous = function (file, tag, reference) {
+
+	let formData = {
+		reference: reference,
+		file: fs.createReadStream(file)
+	}
+
+	req('POST', `/api/pub/v1/project/continuous/${tag}`, null, null, formData, null)
+}
+
 exports.readyProject = function (projectId) {
 	req('POST', `/api/pub/v1/project/${projectId}/ready`)
 }
@@ -199,6 +211,25 @@ exports.downloadFile = function (projectId, serviceItemId, filename, destination
 	}
 
 	req('GET', `/api/pub/v1/project/${projectId}/${serviceItemId}/${filename}/`, callback)
+}
+
+exports.downloadContinuous = function (filename, tag, status, destinationPath) {
+
+	function callback (error, response) {
+
+		if (error) {
+			console.log(error)
+			return
+		}
+
+		if (!destinationPath) {
+			destinationPath = './'
+		}
+
+		fs.writeFileSync(`${tag}.zip`, response.body)
+	}
+
+	req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
 }
 
 exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outputUrl) {

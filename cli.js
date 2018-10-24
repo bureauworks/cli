@@ -64,6 +64,19 @@ program
 })
 
 program
+	.command('continuous')
+	.description('Uploads a file to a continuous integration project. This method assumes that you have default target languages setup in your profile. Continuous are approved after a pre-estabilished schedule.')
+	.option('-t, --tag <tag>', 'A tag to identify this project, e.g., ios, android, etc.')
+	.option('-r, --reference <reference>', 'A mnemonic or coded reference for your record')
+	.option('-f, --file <file>', 'The file in the current filesystem')
+	.action(function(cmd, options) { handleContinuous(cmd, options) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx continuous -r \'Some reference\' -t android -f ./files/strings.xml')
+		console.log()
+})
+
+program
 	.command('ready')
 	.description('Flags a project as READY, which means you have finished upload files and the system will now quote the project. Returns a JSON with the costs breakdown.')
 	.option('-p, --project <projectId>', 'The Project ID')
@@ -179,6 +192,20 @@ program
 })
 
 program
+	.command('download-continuous')
+	.description('Downloads a file given a tag identification for Continuous Integration projects')
+	.option('-t, --tag <tag>', 'A tag that will identify the project in the pool of CI projects')
+	.option('-f, --filename <filename>', 'The file name')
+	.option('-s, --status <status>', 'The job status, use DELIVERED for final files, or APPROVED for partially completed files with both Translation Memory and Machine Translation strings')
+	.option('-d, --destination <directory>', 'Optional, if passed to the function will save the file in the given directory')
+	.action(function(cmd) { handleDownloadContinuous(cmd) }).on('--help', function() {
+		console.log('  Example:')
+		console.log()
+		console.log('    $ bwx download-continuous -t android -f strings.xml -s APPROVED')
+		console.log()
+})
+
+program
 	.command('download-by-filename')
 	.description('Alternate download method, uses Project ID, Service Item ID and a filename. This method is useful for odd deliveries, for example, if a delivery file is split in multiple files or if the delivered file has a different format than that of the input')
 	.option('-p, --project <projectId>', 'The Project ID')
@@ -244,6 +271,10 @@ function handleUpload(cmd) {
 	bw.uploadFile(cmd.project, cmd.service_item, cmd.file)
 }
 
+function handleContinuous(cmd) {
+	bw.uploadContinuous(cmd.file, cmd.tag, cmd.reference)
+}
+
 function handleReady(cmd) {
 	bw.readyProject(cmd.project)
 }
@@ -282,6 +313,10 @@ function handleRejectJob(cmd) {
 
 function handleDownload(cmd) {
 	bw.downloadFileByJobId(cmd.project, cmd.job, cmd.destination)
+}
+
+function handleDownloadContinuous(cmd) {
+	bw.downloadContinuous(cmd.filename, cmd.tag, cmd.status, cmd.destination)
 }
 
 function handleDownloadByFilename(cmd) {
