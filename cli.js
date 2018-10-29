@@ -235,7 +235,7 @@ function config() {
 
 	rl.question('Enter API URL (default: https://bureau.works): ', (url) => {
 		rl.question('Enter API ID: ', (id) => {
-			rl.question('Enter API KEY: ', (secret) => {
+			rl.question('Enter API SECRET KEY: ', (secret) => {
 				
 				if (url && isURL(url)) {
 					config.url = url
