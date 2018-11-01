@@ -8,7 +8,7 @@ const url = require('url')
 const homedir = require('os').homedir()
 
 // Binary responses, use encoding=null, otherwise default is utf8
-function req(method, endpoint, callback, body, formData, contentType, encoding) {
+function req(method, endpoint, processCallback, body, formData, contentType, encoding) {
 
 	let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
 
@@ -30,19 +30,22 @@ function req(method, endpoint, callback, body, formData, contentType, encoding) 
 		}
 	}
 
-	if (!callback) {
-		request_promise(options, default_callback)
+	if (!processCallback) {
+		request_promise(options)
+			.then(function (response) {
+				console.log(response.body)
+				process.exitCode = 0
+			})
+			.catch(function (error) {
+				console.log('Error ' + error.message)
+				process.exitCode = 1
+			})
 	} else {
-		request_promise(options, callback)
+		request_promise(options).then(processCallback).catch(function(error) {
+			console.log('Error ' + error.message)
+			process.exitCode = 1
+		})
 	}
-}
-
-function default_callback (error, response, body) {
-	if (error) {
-		console.log(error)
-		return
-	}
-	console.log(body)
 }
 
 function login (configInput) {
@@ -75,7 +78,8 @@ function login (configInput) {
 		console.log('Authentication successfull, config file created in ~/.bwx/config.json')
     })
     .catch(function (err) {
-        console.log(err)
+		console.log(err)
+		process.exitCode = 1
     })
 }
 
@@ -188,21 +192,17 @@ exports.rejectJob = function (projectId, jobId, message) {
 
 exports.downloadFile = function (projectId, serviceItemId, filename, destinationPath, outputUrl) {
 
-	function callback (error, response, body) {
-		if (error) {
-			console.log(error)
-			return
-		}
+	function callback (response) {
 
 		if (outputUrl) {
-			console.log(body)
+			console.log(response.body)
 		}
 
 		if (!destinationPath) {
 			destinationPath = './'
 		}
 
-		let json = JSON.parse(body)
+		let json = JSON.parse(response.body)
 
 		// get just the filename component, it may be path/filename
 		let f = path.posix.basename(filename)
@@ -215,18 +215,15 @@ exports.downloadFile = function (projectId, serviceItemId, filename, destination
 
 exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
-	function callback (error, response) {
-
-		if (error) {
-			console.log(error)
-			return
-		}
+	function callback (response) {
 
 		if (!destinationPath) {
 			destinationPath = './'
 		}
 
 		fs.writeFileSync(`${tag}.zip`, response.body)
+
+		process.exit(0)	
 	}
 
 	req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
@@ -234,17 +231,13 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
 exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outputUrl) {
 
-	function callback (error, response, body) {
-		if (error) {
-			console.log(error)
-			return
-		}
+	function callback (response) {
 
 		if (outputUrl) {
-			console.log(body)
+			console.log(response.body)
 		}
 
-		let json = JSON.parse(body)
+		let json = JSON.parse(response.body)
 
 		// get path component of url, last part is filename
 		let urlPath = url.parse(json.signed_request).pathname
