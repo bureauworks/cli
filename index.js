@@ -37,12 +37,12 @@ function req(method, endpoint, processCallback, body, formData, contentType, enc
 				process.exitCode = 0
 			})
 			.catch(function (error) {
-				console.log('Error ' + error.message)
+				log(error)
 				process.exitCode = 1
 			})
 	} else {
 		request_promise(options).then(processCallback).catch(function(error) {
-			console.log('Error ' + error.message)
+			log(error)
 			process.exitCode = 1
 		})
 	}
@@ -78,7 +78,7 @@ function login (configInput) {
 		console.log('Authentication successfull, config file created in ~/.bwx/config.json')
     })
     .catch(function (err) {
-		console.log(err)
+		log(err)
 		process.exitCode = 1
     })
 }
@@ -178,13 +178,13 @@ function upsertCallback(asyncResponse) {
 				}
 			
 				if (resp.status == 'ERROR') {
-					console.log('Error!! ' + resp.error)
+					log(resp)
 					process.exitCode = 1
 					process.exit(1);
 				}
 			})
 			.catch(function (error) {
-				console.log('Error ' + error.message)
+				log(error)
 				process.exitCode = 1
 			});
 
@@ -296,4 +296,8 @@ exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outpu
 	}
 
 	req('GET', `/api/pub/v1/project/${projectId}/delivered/${jobId}`, callback)
+}
+
+function log(error) {
+	console.log("Error: " + (error.error || error.message || error.body || error));
 }
