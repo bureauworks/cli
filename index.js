@@ -137,14 +137,59 @@ exports.uploadFile = function (projectId, serviceItemId, file) {
 }
 
 exports.uploadContinuous = function (file, tag, reference) {
-
 	let formData = {
 		reference: reference,
 		file: fs.createReadStream(file)
 	}
 
-	req('POST', `/api/pub/v1/project/continuous/${tag}`, null, null, formData, null)
+	req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
 }
+
+function upsertCallback(asyncResponse) {
+
+	let resp = JSON.parse(asyncResponse.body);
+	let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
+	
+	let formData = {
+		requestId: resp.id
+	}
+	
+	let options = {
+		uri: config.url + `/api/pub/v1/project/async/continuous/${resp.data.productTag}`,
+		method: 'POST',
+		body: null,
+		formData: formData,
+		resolveWithFullResponse: true,
+		headers: {
+			'Content-Type': 'application/json',
+			'User-Agent': 'BWX',
+			'x-auth-token': config.api_token
+		}
+	}
+	setInterval(function () { 
+
+		request_promise(options)
+			.then(function (response) {
+				let resp = JSON.parse(response.body)
+				if (resp.status == 'DONE') {
+					// console.log(resp)
+					process.exitCode = 0;
+					process.exit(0);
+				}
+			
+				if (resp.status == 'ERROR') {
+					console.log('Error!! ' + resp.error)
+					process.exitCode = 1
+					process.exit(1);
+				}
+			})
+			.catch(function (error) {
+				console.log('Error ' + error.message)
+				process.exitCode = 1
+			});
+
+	}, 5000);
+}	
 
 exports.readyProject = function (projectId) {
 	req('POST', `/api/pub/v1/project/${projectId}/ready`)
