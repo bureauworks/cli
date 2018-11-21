@@ -178,7 +178,7 @@ function upsertCallback(asyncResponse) {
 				}
 			
 				if (resp.status == 'ERROR') {
-					console.log('Error!! ')
+					console.log('Error!! ' + resp.error)
 					process.exitCode = 1
 					process.exit(1);
 				}
