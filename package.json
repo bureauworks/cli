@@ -1,6 +1,6 @@
 {
   "name": "@bureauworks/bwx",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Bureau Works CLI and Package for NodeJS applications",
   "main": "index.js",
   "bin": {

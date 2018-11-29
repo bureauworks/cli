@@ -7,6 +7,15 @@ const path = require('path')
 const url = require('url')
 const homedir = require('os').homedir()
 
+let upsertRetries = 3
+let upsertRetriesCount = 0
+let upsertParams = {}
+
+let downloadRetries = 3
+let downloadRetriesCount = 0
+let downloadParms = {}
+
+
 // Binary responses, use encoding=null, otherwise default is utf8
 function req(method, endpoint, processCallback, body, formData, contentType, encoding) {
 
@@ -137,17 +146,29 @@ exports.uploadFile = function (projectId, serviceItemId, file) {
 }
 
 exports.uploadContinuous = function (file, tag, reference) {
+
+	if (!file) { // this may happen if this method is invoked from the retry mechanism in callback
+		file = upsertParams.file
+		tag = upsertParams.tag
+		reference = upsertParams.reference
+	}
+
 	let formData = {
 		reference: reference,
 		file: fs.createReadStream(file)
 	}
+
+	// Save inputs in global variables for retry attempts, if needed
+	upsertParams.file = file
+	upsertParams.tag = tag
+	upsertParams.reference = reference
 
 	req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
 }
 
 function upsertCallback(asyncResponse) {
 
-	let resp = JSON.parse(asyncResponse.body);
+	let resp = JSON.parse(asyncResponse.body)
 	let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
 	
 	let formData = {
@@ -166,29 +187,35 @@ function upsertCallback(asyncResponse) {
 			'x-auth-token': config.api_token
 		}
 	}
-	setInterval(function () { 
+
+	let interval = setInterval(function () { 
 
 		request_promise(options)
 			.then(function (response) {
 				let resp = JSON.parse(response.body)
 				if (resp.status == 'DONE') {
-					// console.log(resp)
-					process.exitCode = 0;
-					process.exit(0);
+					process.exitCode = 0
+					clearInterval(interval)
 				}
 			
 				if (resp.status == 'ERROR') {
-					log(resp)
-					process.exitCode = 1
-					process.exit(1);
+					if (upsertRetriesCount++ < upsertRetries) {
+						console.log('An error has occurred, will retry in 60s - ', resp.error)
+						setTimeout(exports.uploadContinuous, 60000)
+						clearInterval(interval)
+					} else {
+						process.exitCode = 1
+						clearInterval(interval)
+					}
 				}
 			})
 			.catch(function (error) {
 				log(error)
 				process.exitCode = 1
-			});
+				clearInterval(interval)
+			})
 
-	}, 5000);
+	}, 5000)
 }	
 
 exports.readyProject = function (projectId) {
@@ -299,5 +326,5 @@ exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outpu
 }
 
 function log(error) {
-	console.log("Error: " + (error.error || error.message || error.body || error));
+	console.log("Error: " + (error.error || error.message || error.body || error))
 }
