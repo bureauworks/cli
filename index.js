@@ -9,6 +9,7 @@ const homedir = require('os').homedir()
 
 let upsertRetries = 3
 let upsertRetriesCount = 0
+let upsertWarnRetriesCount = 0
 let upsertParams = {}
 
 let downloadRetries = 3
@@ -208,6 +209,18 @@ function upsertCallback(asyncResponse) {
 						clearInterval(interval)
 					}
 				}
+
+				if (resp.status == 'WARN') {
+					if (upsertWarnRetriesCount++ < upsertRetries) {
+						console.log('A warning has occurred, will retry in 60s - ', resp.error)
+						setTimeout(exports.uploadContinuous, 60000)
+						clearInterval(interval)
+					} else {
+						process.exitCode = 1
+						clearInterval(interval)
+					}
+				}
+
 			})
 			.catch(function (error) {
 				log(error)
@@ -351,5 +364,5 @@ exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outpu
 }
 
 function log(error) {
-	console.log("Error: " + (error.error || error.message || error.body || error))
+	console.log("Message: " + (error.error || error.message || error.body || error))
 }
