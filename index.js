@@ -287,15 +287,40 @@ exports.downloadFile = function (projectId, serviceItemId, filename, destination
 
 exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
+	if (!filename) { // this may happen if this method is invoked from the retry mechanism in callback
+		filename = downloadParms.filename
+		tag = downloadParms.tag
+		status = downloadParms.status
+		destinationPath = downloadParms.destinationPath
+	}
+
+	// Save inputs in global variables for retry attempts, if needed
+	downloadParms.filename = filename
+	downloadParms.tag = tag
+	downloadParms.status = status
+	downloadParms.destinationPath = destinationPath
+
 	function callback (response) {
 
-		if (!destinationPath) {
-			destinationPath = './'
+		if (response.statusCode == 202) {
+			if (downloadRetriesCount++ < downloadRetries) {
+				console.log('Download has not been complete, will retry in 60s - ' + response.body)
+				setTimeout(exports.downloadContinuous, 60000)
+			} else {
+				process.exitCode = 1
+			}
 		}
 
-		fs.writeFileSync(`${tag}.zip`, response.body)
-
-		process.exit(0)	
+		if (response.statusCode == 200) {
+			if (!destinationPath) {
+				destinationPath = './'
+			}
+	
+			fs.writeFileSync(`${tag}.zip`, response.body)
+			process.exit(0)	
+		} else {
+			process.exitCode = 1
+		}
 	}
 
 	req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
