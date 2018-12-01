@@ -317,7 +317,7 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
 		if (response.statusCode == 202) {
 			if (downloadRetriesCount++ < downloadRetries) {
-				console.log('Download has not been complete, will retry in 60s - ' + response.body)
+				console.log('Download has not been completed, will retry in 60s' + " | " + response.body)
 				setTimeout(exports.downloadContinuous, 60000)
 			} else {
 				process.exitCode = 1
@@ -330,6 +330,7 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 			}
 	
 			fs.writeFileSync(`${tag}.zip`, response.body)
+			console.log('Download completed successfully!')
 			process.exit(0)	
 		} else {
 			process.exitCode = 1
