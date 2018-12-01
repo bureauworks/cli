@@ -201,7 +201,7 @@ function upsertCallback(asyncResponse) {
 			
 				if (resp.status == 'ERROR') {
 					if (upsertRetriesCount++ < upsertRetries) {
-						console.log('An error has occurred, will retry in 60s - ', resp.error)
+						console.log('An error has occurred, will retry in 60s | ', resp.error)
 						setTimeout(exports.uploadContinuous, 60000)
 						clearInterval(interval)
 					} else {
@@ -212,7 +212,7 @@ function upsertCallback(asyncResponse) {
 
 				if (resp.status == 'WARN') {
 					if (upsertWarnRetriesCount++ < upsertRetries) {
-						console.log('A warning has occurred, will retry in 60s - ', resp.error)
+						console.log('A warning has occurred, will retry in 60s | ', resp.error)
 						setTimeout(exports.uploadContinuous, 60000)
 						clearInterval(interval)
 					} else {
