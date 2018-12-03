@@ -11,7 +11,7 @@ function list(val) {
 }
 
 program
-	.version('1.0.0', '-v, --version')
+	.version('1.0.3', '-v, --version')
 	.usage('<command> [options]')
 
 program
