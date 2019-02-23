@@ -319,7 +319,7 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
     if (response.statusCode == 202) {
       if (downloadRetriesCount++ < downloadRetries) {
-        console.log('Download has not been completed, will retry in 60s' + " | " + response.body)
+        console.log('Download has not been completed, will retry in 60s' + ' | ' + response.body)
         setTimeout(exports.downloadContinuous, 60000)
       } else {
         process.exitCode = 1
