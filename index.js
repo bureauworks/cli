@@ -367,5 +367,5 @@ exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outpu
 }
 
 function log(error) {
-  console.log("Message: " + (error.error || error.message || error.body || error))
+  console.log('Message: ' + (error.error || error.message || error.body || error))
 }
