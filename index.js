@@ -156,10 +156,15 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
   }
 
   let formData = {
-    reference: reference,
-    tag: tag,
-    languages: languages,
     file: fs.createReadStream(file)
+  }
+
+  if (languages) {
+    formData.languages = languages
+  }
+
+  if (reference) {
+    formData.reference = reference
   }
 
   // Save inputs in global variables for retry attempts, if needed
