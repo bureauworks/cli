@@ -157,6 +157,8 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
 
   let formData = {
     reference: reference,
+    tag: tag,
+    languages: languages,
     file: fs.createReadStream(file)
   }
 
