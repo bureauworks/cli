@@ -85,7 +85,7 @@ function login(configInput) {
 
       fs.writeFileSync(homedir + '/.bwx/config.json', JSON.stringify(configInput, null, 2))
 
-      console.log('Authentication successfull, config file created in ~/.bwx/config.json')
+      console.log('Authentication successful, config file created in ~/.bwx/config.json')
     })
     .catch(function (err) {
       log(err)
