@@ -16,6 +16,7 @@ let downloadRetries = 3
 let downloadRetriesCount = 0
 let downloadParms = {}
 
+let asyncRunningCount = 0;
 
 // Binary responses, use encoding=null, otherwise default is utf8
 function req(method, endpoint, processCallback, body, formData, contentType, encoding) {
@@ -240,8 +241,81 @@ function upsertCallback(asyncResponse) {
   }, 5000)
 }
 
+function readyCallback(asyncResponse) {
+
+  let resp = JSON.parse(asyncResponse.body)
+  let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
+
+  let formData = {
+    requestId: resp.id
+  }
+
+  let options = {
+    uri: config.url + `/api/pub/v1/project/async/${resp.data}/ready`,
+    method: 'POST',
+    body: null,
+    formData: formData,
+    resolveWithFullResponse: true,
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'BWX',
+      'x-auth-token': config.api_token
+    }
+  }
+
+  let interval = setInterval(function () {
+
+    request_promise(options)
+      .then(function (response) {
+        let resp = JSON.parse(response.body)
+
+        if (resp.status == 'RUNNING') {
+          console.clear()
+          console.log('Waiting for progress ' + ".".repeat(asyncRunningCount++))
+        }
+
+        if (resp.status == 'DONE') {
+          console.clear()
+          console.log('Complete: ')
+          console.log(resp.data)
+          process.exitCode = 0
+          clearInterval(interval)
+        }
+
+        if (resp.status == 'ERROR') {
+          if (upsertRetriesCount++ < upsertRetries) {
+            console.log('An error has occurred, will retry in 60s | ', resp.error)
+            setTimeout(exports.uploadContinuous, 60000)
+            clearInterval(interval)
+          } else {
+            process.exitCode = 1
+            clearInterval(interval)
+          }
+        }
+
+        if (resp.status == 'WARN') {
+          if (upsertWarnRetriesCount++ < upsertRetries) {
+            console.log('A warning has occurred, will retry in 60s | ', resp.error)
+            setTimeout(exports.uploadContinuous, 60000)
+            clearInterval(interval)
+          } else {
+            process.exitCode = 1
+            clearInterval(interval)
+          }
+        }
+
+      })
+      .catch(function (error) {
+        log(error)
+        process.exitCode = 1
+        clearInterval(interval)
+      })
+
+  }, 5000)
+}
+
 exports.readyProject = function (projectId) {
-  req('POST', `/api/pub/v1/project/${projectId}/ready`)
+  req('POST', `/api/pub/v1/project/async/${projectId}/ready`, readyCallback, null, null, null)
 }
 
 exports.approveProject = function (projectId) {
