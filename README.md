@@ -13,7 +13,7 @@ For API reference, please visit https://dev.bureau.works
 
 Clone this repository:
 
-```$ git clone https://github.com/bureauworks/cli.git```
+```$ git clone https://github.com/bureauworks/bwx.git```
 
 Install dependencies
 
