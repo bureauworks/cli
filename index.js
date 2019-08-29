@@ -19,7 +19,7 @@ let downloadParms = {}
 let asyncRunningCount = 0;
 
 // Binary responses, use encoding=null, otherwise default is utf8
-function req(method, endpoint, processCallback, body, formData, contentType, encoding) {
+function req(method, endpoint, processCallback, body, formData, contentType, encoding, retry = true) {
 
   let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
 
@@ -48,6 +48,20 @@ function req(method, endpoint, processCallback, body, formData, contentType, enc
         process.exitCode = 0
       })
       .catch(function (error) {
+        if(error.statusCode == 403) {
+          if(retry == true) {
+            login(config).then(function (response) {
+              if(retry == true) {
+                req(method, endpoint, processCallback, body, formData, contentType, encoding, false);
+              }
+            }).catch(function (error) {
+              console.log('Message: ' + (error.error || error.message || error.body || error))
+              process.exitCode = 1
+            });
+          }
+          return;
+        }
+       
         log(error)
         process.exitCode = 1
       })
@@ -76,22 +90,16 @@ function login(configInput) {
     }
   }
 
-  request_promise(options).then(function (response) {
+  return request_promise(options).then(function (response) {
 
-      configInput.api_token = response.headers['x-auth-token']
+    configInput.api_token = response.headers['x-auth-token']
 
-      if (!fs.existsSync(homedir + '/.bwx')) {
-        fs.mkdirSync(homedir + '/.bwx')
-      }
+    if (!fs.existsSync(homedir + '/.bwx')) {
+      fs.mkdirSync(homedir + '/.bwx')
+    }
 
-      fs.writeFileSync(homedir + '/.bwx/config.json', JSON.stringify(configInput, null, 2))
-
-      console.log('Authentication successful, config file created in ~/.bwx/config.json')
-    })
-    .catch(function (err) {
-      log(err)
-      process.exitCode = 1
-    })
+    fs.writeFileSync(homedir + '/.bwx/config.json', JSON.stringify(configInput, null, 2))
+  });
 }
 
 exports.login = function (config) {
