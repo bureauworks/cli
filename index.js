@@ -49,9 +49,9 @@ function req(method, endpoint, processCallback, body, formData, contentType, enc
       })
       .catch(function (error) {
         if(error.statusCode == 403) {
-          if(retry == true) {
+          if(retry) {
             login(config).then(function (response) {
-              if(retry == true) {
+              if(retry) {
                 req(method, endpoint, processCallback, body, formData, contentType, encoding, false);
               }
             }).catch(function (error) {
