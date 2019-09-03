@@ -271,12 +271,12 @@ function config() {
   })
 
   let config = {}
-  config.url = 'https://bureau.works'
+  config.url = 'https://api.bureau.works'
   config.api_id = ''
   config.api_secret = ''
   config.api_token = ''
 
-  rl.question('Enter API URL (default: https://bureau.works): ', (url) => {
+  rl.question('Enter API URL (default: https://api.bureau.works): ', (url) => {
     rl.question('Enter API ID: ', (id) => {
       rl.question('Enter API SECRET KEY: ', (secret) => {
 
@@ -299,7 +299,7 @@ function config() {
         }).catch(function (error) {
           console.log('Message: ' + (error.error || error.message || error.body || error))
           process.exitCode = 1
-        });
+        })
       })
     })
   })

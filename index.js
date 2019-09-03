@@ -99,11 +99,11 @@ function login(configInput) {
     }
 
     fs.writeFileSync(homedir + '/.bwx/config.json', JSON.stringify(configInput, null, 2))
-  });
+  })
 }
 
 exports.login = function (config) {
-  login(config)
+  return login(config)
 }
 
 exports.languages = function () {
