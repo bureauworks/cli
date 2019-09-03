@@ -294,7 +294,12 @@ function config() {
 
         rl.close()
 
-        bw.login(config)
+        bw.login(config).then(function () {
+          console.log('Authentication successful, config file created in ~/.bwx/config.json')
+        }).catch(function (error) {
+          console.log('Message: ' + (error.error || error.message || error.body || error))
+          process.exitCode = 1
+        });
       })
     })
   })
