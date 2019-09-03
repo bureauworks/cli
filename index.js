@@ -103,7 +103,7 @@ function login(configInput) {
 }
 
 exports.login = function (config) {
-  login(config)
+  return login(config)
 }
 
 exports.languages = function () {
