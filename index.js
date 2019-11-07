@@ -14,7 +14,7 @@ let upsertParams = {}
 
 let downloadRetries = 3
 let downloadRetriesCount = 0
-let downloadParms = {}
+let downloadParams = {}
 
 let asyncRunningCount = 0;
 
@@ -392,17 +392,17 @@ exports.downloadFile = function (projectId, serviceItemId, filename, destination
 exports.downloadContinuous = function (filename, tag, status, destinationPath) {
 
   if (!filename) { // this may happen if this method is invoked from the retry mechanism in callback
-    filename = downloadParms.filename
-    tag = downloadParms.tag
-    status = downloadParms.status
-    destinationPath = downloadParms.destinationPath
+    filename = downloadParams.filename
+    tag = downloadParams.tag
+    status = downloadParams.status
+    destinationPath = downloadParams.destinationPath
   }
 
   // Save inputs in global variables for retry attempts, if needed
-  downloadParms.filename = filename
-  downloadParms.tag = tag
-  downloadParms.status = status
-  downloadParms.destinationPath = destinationPath
+  downloadParams.filename = filename
+  downloadParams.tag = tag
+  downloadParams.status = status
+  downloadParams.destinationPath = destinationPath
 
   function callback(response) {
 
@@ -429,6 +429,50 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
   }
 
   req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
+}
+
+exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {
+
+  if (!filename) { // this may happen if this method is invoked from the retry mechanism in callback
+    filename = downloadParams.filename
+    tag = downloadParams.tag
+    status = downloadParams.status
+    language = downloadParams.language
+    destinationPath = downloadParams.destinationPath
+  }
+
+  // Save inputs in global variables for retry attempts, if needed
+  downloadParams.filename = filename
+  downloadParams.tag = tag
+  downloadParams.status = status
+  downloadParams.language = language
+  downloadParams.destinationPath = destinationPath
+
+  function callback(response) {
+
+    if (response.statusCode == 202) {
+      if (downloadRetriesCount++ < downloadRetries) {
+        console.log('Download has not been completed, will retry in 60s' + ' | ' + response.body)
+        setTimeout(exports.downloadContinuous, 60000)
+      } else {
+        process.exitCode = 1
+      }
+    }
+
+    if (response.statusCode == 200) {
+      if (!destinationPath) {
+        destinationPath = './'
+      }
+
+      fs.writeFileSync(`${filename}`, response.body)
+      console.log('Download completed successfully!')
+      process.exit(0)
+    } else {
+      process.exitCode = 1
+    }
+  }
+
+  req('GET', `/api/pub/v1/project/continuous/${tag}/${language}/${filename}/?status=${status}`, callback, null, null, null, null)
 }
 
 exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outputUrl) {

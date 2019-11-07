@@ -246,6 +246,23 @@ program
     console.log()
   })
 
+  program
+  .command('download-continuous-filename')
+  .description('Downloads a file given its name and language for Continuous Integration projects')
+  .option('-t, --tag <tag>', 'A tag that will identify the project in the pool of CI projects')
+  .option('-f, --filename <filename>', 'The file, e.g., strings.xml')
+  .option('-l, --language <language>', 'The language, in format like es, pt_br, de, fr_fr, etc.')
+  .option('-s, --status <status>', 'The job status, use DELIVERED for final files, or APPROVED for partially completed files with both Translation Memory and Machine Translation strings')
+  .option('-d, --destination [directory]', 'Optional, if passed to the function will save the file in the given directory')
+  .action(function (cmd) {
+    handleDownloadContinuousByLanguage(cmd)
+  }).on('--help', function () {
+    console.log('  Example:')
+    console.log()
+    console.log('    $ bwx download-continuous-filename -t android -f strings.xml -s APPROVED -l pt_br')
+    console.log()
+  })
+
 program
   .command('download-by-filename')
   .description('Alternate download method, uses Project ID, Service Item ID and a filename. This method is useful for odd deliveries, for example, if a delivery file is split in multiple files or if the delivered file has a different format than that of the input')
@@ -365,6 +382,10 @@ function handleDownload(cmd) {
 
 function handleDownloadContinuous(cmd) {
   bw.downloadContinuous(cmd.filename, cmd.tag, cmd.status, cmd.destination)
+}
+
+function handleDownloadContinuousByLanguage(cmd) {
+  bw.downloadContinuousByLanguage(cmd.filename, cmd.tag, cmd.status, cmd.language, cmd.destination)
 }
 
 function handleDownloadByFilename(cmd) {
