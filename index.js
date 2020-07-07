@@ -19,16 +19,24 @@ let downloadParams = {}
 let asyncRunningCount = 0;
 
 // Binary responses, use encoding=null, otherwise default is utf8
-function req(method, endpoint, processCallback, body, formData, contentType, encoding, retry = true) {
+function req(method, endpoint, processCallback, body, formData, contentType, encoding, retry = true, genesisRequest=false) {
 
   let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
+
+  let url = '';
+  
+  if (genesisRequest) {
+    url = config.genesis_url
+  } else {
+    url = config.url
+  }
 
   if (!contentType) {
     contentType = 'application/json'
   }
 
   let options = {
-    uri: config.url + endpoint,
+    uri: url + endpoint,
     method: method,
     body: body,
     encoding: encoding,
@@ -497,6 +505,73 @@ exports.downloadFileByJobId = function (projectId, jobId, destinationPath, outpu
   }
 
   req('GET', `/api/pub/v1/project/${projectId}/delivered/${jobId}`, callback)
+}
+
+exports.downloadGenesisTranslatedFile = function (workUnitId) {
+  function genesisDownloadCallback(response) {
+
+    let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
+  
+    let options = {
+      uri: config.genesis_url + `/api/v1/work-unit/${workUnitId}/status`,
+      method: 'GET',
+      body: null,
+      resolveWithFullResponse: true,
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'BWX',
+        'x-auth-token': config.api_token
+      }
+    }
+  
+    let interval = setInterval(function () {
+  
+      request_promise(options)
+        .then(function (response) {
+          let data = JSON.parse(response.body)
+
+          if (data.translationStatus === 'PREPARING') {
+            console.info('Preparing file...')
+            return
+          }
+
+          if (data.translationStatus === 'ERROR') {
+            errorGenesisDownload ()
+            return
+          }
+
+          if (data.translationStatus === 'NOT_TRANSLATED') {
+            console.info('Work unit has not been translated yet')
+            clearInterval(interval)
+            return
+          }
+
+          if (data.translationStatus === 'TRANSLATED') {
+            console.log('Downloading... ')
+            let folder = '/.bwx/downloaded-files/'
+            if (!fs.existsSync(homedir + folder)) {
+              fs.mkdirSync(homedir + folder)
+            }
+            let filePath = homedir + folder + data.targetLocale + '_' + data.fileName
+            download(data.translatedFileUrl)
+                    .pipe(fs.createWriteStream(filePath))
+            console.info('The file was downloaded at ' + filePath)
+            clearInterval(interval)
+          }
+        })
+        .catch(function (error) {
+          errorGenesisDownload ()
+        })
+  
+    }, 5000)
+
+    function errorGenesisDownload () {
+      console.error('Error getting translated file with work unit ID ' + workUnitId)
+      process.exitCode = 1
+      clearInterval(interval)
+    }
+  }
+  req('POST', `/api/v1/work-unit/${workUnitId}/translation`, genesisDownloadCallback, null, null, null, null, null, true)
 }
 
 function log(error) {
