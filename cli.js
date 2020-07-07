@@ -279,6 +279,14 @@ program
     console.log()
   })
 
+program
+  .command('genesis-download')
+  .description("Download translated file from Genesis")
+  .option('-w, --work-unit <workUnitId>', 'Work unit ID')
+  .action(function (cmd) {
+    handleGenesisDownload(cmd)
+  })
+
 program.parse(process.argv)
 
 function config() {
@@ -296,26 +304,31 @@ function config() {
   rl.question('Enter API URL (default: https://bureau.works): ', (url) => {
     rl.question('Enter API ID: ', (id) => {
       rl.question('Enter API SECRET KEY: ', (secret) => {
+        rl.question('Enter Genesis API URL: ', (genesisUrl) => {
+          if (url && isURL(url)) {
+            config.url = url
+          }
+  
+          if (id) {
+            config.api_id = id
+          }
+  
+          if (secret) {
+            config.api_secret = secret
+          }
 
-        if (url && isURL(url)) {
-          config.url = url
-        }
-
-        if (id) {
-          config.api_id = id
-        }
-
-        if (secret) {
-          config.api_secret = secret
-        }
-
-        rl.close()
-
-        bw.login(config).then(function () {
-          console.log('Authentication successful, config file created in ~/.bwx/config.json')
-        }).catch(function (error) {
-          console.log('Message: ' + (error.error || error.message || error.body || error))
-          process.exitCode = 1
+          if (genesisUrl && isURL(genesisUrl)) {
+            config.genesis_url = genesisUrl
+          }
+  
+          rl.close()
+  
+          bw.login(config).then(function () {
+            console.log('Authentication successful, config file created in ~/.bwx/config.json')
+          }).catch(function (error) {
+            console.log('Message: ' + (error.error || error.message || error.body || error))
+            process.exitCode = 1
+          })
         })
       })
     })
@@ -390,4 +403,8 @@ function handleDownloadContinuousByLanguage(cmd) {
 
 function handleDownloadByFilename(cmd) {
   bw.downloadFile(cmd.project, cmd.service_item, cmd.filename, cmd.destination)
+}
+
+function handleGenesisDownload(cmd) {
+  bw.downloadGenesisTranslatedFile(cmd.workUnit)
 }
