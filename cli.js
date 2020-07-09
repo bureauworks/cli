@@ -280,8 +280,8 @@ program
   })
 
 program
-  .command('genesis-download')
-  .description("Download translated file from Genesis")
+  .command('atlas-download')
+  .description("Download translated file from Atlas")
   .option('-w, --work-unit <workUnitId>', 'Work unit ID')
   .action(function (cmd) {
     handleGenesisDownload(cmd)
