@@ -513,7 +513,7 @@ exports.downloadGenesisTranslatedFile = function (workUnitId) {
     let config = JSON.parse(fs.readFileSync(homedir + '/.bwx/config.json'))
   
     let options = {
-      uri: config.genesis_url + `/api/v1/work-unit/${workUnitId}/status`,
+      uri: config.genesis_url + `/api/v1/work-unit/${workUnitId}/file-status`,
       method: 'GET',
       body: null,
       resolveWithFullResponse: true,
