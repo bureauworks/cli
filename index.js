@@ -5,7 +5,6 @@ const fs = require('fs')
 const download = require('download')
 const path = require('path')
 const url = require('url')
-const { connect } = require('http2')
 const homedir = require('os').homedir()
 
 let upsertRetries = 3
