@@ -5,6 +5,7 @@ const fs = require('fs')
 const download = require('download')
 const path = require('path')
 const url = require('url')
+const { connect } = require('http2')
 const homedir = require('os').homedir()
 
 let upsertRetries = 3
@@ -191,6 +192,42 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
   upsertParams.languages = languages
 
   req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
+}
+
+exports.uploadContinuousDeux = function (files, tag, source, locales, client, reference) {
+  if (files == null || files.length == 0) {
+    files = upsertParams.files
+    tag = upsertParams.tag
+    source = upsertParams.source
+    locales = upsertParams.locales
+    client = upsertParams.client
+    reference = upsertParams.reference
+  }
+
+  let formData = {
+    files: files.map(el => fs.createReadStream(el))
+  }
+
+  if (source) {
+    formData.source = source
+  }
+
+  if (locales) {
+    formData.locales = locales
+  }
+
+  if (reference) {
+    formData.reference = reference
+  }
+
+  upsertParams.files = files
+  upsertParams.tag = tag
+  upsertParams.source = source
+  upsertParams.locales = locales
+  upsertParams.client = client
+  upsertParams.reference = reference
+
+  req('POST', `/api/v3/project/ci/${client}/${tag}`, null, null, formData, null)
 }
 
 function upsertCallback(asyncResponse) {
@@ -437,6 +474,66 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
   }
 
   req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
+}
+
+exports.downloadContinuousDeux = function (filenames, resources, locales, status, clientUUID, tag) {
+
+  if (!clientUUID) { // this may happen if this method is invoked from the retry mechanism in callback
+    filenames = downloadParams.filenames
+    resources = downloadParams.resources
+    locales = downloadParams.locales
+    status = downloadParams.projectStatus
+    clientUUID = downloadParams.clientUUID
+    tag = downloadParams.tag
+  }
+  
+  let queryParams = {}
+
+  if (filenames != null) {
+    queryParams.filenames = filenames
+  }
+
+  if (resources != null) {
+    queryParams.resources = resources
+  }
+
+  if (locales != null) {
+    queryParams.locales = locales
+  }
+
+  if (status) {
+    queryParams.projectStatus = status
+  }
+
+  // Save inputs in global variables for retry attempts, if needed
+  downloadParams.filenames = filenames
+  downloadParams.resources = resources
+  downloadParams.locales = locales
+  downloadParams.projectStatus = status
+  downloadParams.clientUUID = clientUUID
+  downloadParams.tag = tag
+
+  function callback(response) {
+
+    if (response.statusCode == 202) {
+      if (downloadRetriesCount++ < downloadRetries) {
+        console.log('Download has not been completed, will retry in 60s' + ' | ' + response.body)
+        setTimeout(exports.downloadContinuousDeux, 60000)
+      } else {
+        process.exitCode = 1
+      }
+    }
+
+    if (response.statusCode == 200) {
+      fs.writeFileSync('translations.zip', response.body)
+      console.log('Download completed successfully!')
+      process.exit(0)
+    } else {
+      process.exitCode = 1
+    }
+  }
+
+  req('GET', `/api/v3/project/ci/${clientUUID}/${tag}`, callback, null, queryParams, null, null)
 }
 
 exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {

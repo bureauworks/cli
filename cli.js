@@ -96,6 +96,28 @@ program
   })
 
 program
+  .command('ci-upload')
+  .description('Uploads a file to a continuous integration project. This method will use the client default source language and target languages unless you provide source and target languages in the options. Continuous are approved after a pre-estabilished schedule.')
+  .option('-t, --tag <tag>', 'A tag to identify this project, e.g., ios, android, etc.')
+  .option('-c, --client <clientUUID>', 'The client UUID for the project')
+  .option('-r, --reference <reference>', 'A mnemonic or coded reference for your record')
+  .option('-s, --source [source]', 'Optional, Source lang for the project')
+  .option('-f, --files <files>', 'The files in the current filesystem', list)
+  .option('-l, --locales [locales]', 'Optional, Project target languages, ISO codes separated by commas - if set, will override client-defined preset languages', list)
+  .action(function (cmd, options) {
+    handleContinuousDeux(cmd, options)
+  }).on('--help', function () {
+    console.log('  Example:')
+    console.log()
+    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml,./files/strings2.xml')
+    console.log()
+    console.log('    Forcing source and target languages:')
+    console.log()
+    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml,./files/strings2.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
+    console.log()
+  })
+
+program
   .command('ready')
   .description('Flags a project as READY, which means you have finished upload files and the system will now quote the project. Returns a JSON with the costs breakdown.')
   .option('-p, --project <projectId>', 'The Project ID')
@@ -246,7 +268,25 @@ program
     console.log()
   })
 
-  program
+program
+  .command('ci-download')
+  .description('Downloads translated files of a project')
+  .option('-c, --client <clientUUID>', 'The project uuid')
+  .option('-t, --tag <tag>', 'A tag that will identify the project in the pool of CI projects')
+  .option('-f, --filenames [filenames]', 'Filters the translations for the given files', list)
+  .option('-l, --locales [locales]', 'Filters the translations for the given locales', list)
+  .option('-r, --resources [resources]', 'Filters the translations for the given resources. You should provide a list of the UUIDS of the resources', list)
+  .option('-s, --status [status]', 'Filters the translations for the given project status')
+  .action(function (cmd) {
+    handleDownloadContinuousDeux(cmd)
+  }).on('--help', function () {
+    console.log('  Example:')
+    console.log()
+    console.log('    $ bwx ci-download -p d23984e0-5c74-4f33-a1fb-5775a8de5b04 -f strings.xml,strings2.xml -l de_de,fr_fr,es_es -s APPROVED, -r 0a2c645e-f646-42e8-aa5e-bd4b44b306ad,fe105e51-805a-4b7f-8b07-4e468c7e02c4')
+    console.log()
+  })
+
+program
   .command('download-continuous-filename')
   .description('Downloads a file given its name and language for Continuous Integration projects')
   .option('-t, --tag <tag>', 'A tag that will identify the project in the pool of CI projects')
@@ -353,6 +393,10 @@ function handleContinuous(cmd) {
   bw.uploadContinuous(cmd.file, cmd.tag, cmd.reference, cmd.languages)
 }
 
+function handleContinuousDeux(cmd) {
+  bw.uploadContinuousDeux(cmd.files, cmd.tag, cmd.source, cmd.locales, cmd.client, cmd.reference)
+}
+
 function handleReady(cmd) {
   bw.readyProject(cmd.project)
 }
@@ -395,6 +439,10 @@ function handleDownload(cmd) {
 
 function handleDownloadContinuous(cmd) {
   bw.downloadContinuous(cmd.filename, cmd.tag, cmd.status, cmd.destination)
+}
+
+function handleDownloadContinuousDeux(cmd) {
+  bw.downloadContinuousDeux(cmd.filenames, cmd.resources, cmd.locales, cmd.status, cmd.client, cmd.tag)
 }
 
 function handleDownloadContinuousByLanguage(cmd) {
