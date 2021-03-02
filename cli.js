@@ -394,7 +394,8 @@ function handleContinuous(cmd) {
 }
 
 function handleContinuousDeux(cmd) {
-  bw.uploadContinuousDeux(cmd.file, cmd.tag, cmd.source, cmd.locales, cmd.unit, cmd.reference)
+  const { file, tag, source, locales, unit, reference, ...rest} = cmd
+  bw.uploadContinuousDeux({ file, tag, source, locales, unit, reference })
 }
 
 function handleReady(cmd) {

@@ -193,40 +193,21 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
   req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
 }
 
-exports.uploadContinuousDeux = function (file, tag, source, locales, orgUnit, reference) {
-  if (!file) {
-    file = upsertParams.file
-    tag = upsertParams.tag
-    source = upsertParams.source
-    locales = upsertParams.locales
-    orgUnit = upsertParams.orgUnit
-    reference = upsertParams.reference
+exports.uploadContinuousDeux = function (params = {}) {
+  if (!params.file) {
+    params = Object.assign(params, upsertParams)
   }
 
   let formData = {
-    file: fs.createReadStream(file)
+    file: fs.createReadStream(params.file),
+    ...(!!params.source && { source: params.source }),
+    ...(!!params.locales && { locales: params.locales }),
+    ...(!!params.reference && { reference: params.reference })
   }
 
-  if (source) {
-    formData.source = source
-  }
+  upsertParams = Object.assign(upsertParams, params)
 
-  if (locales) {
-    formData.locales = locales
-  }
-
-  if (reference) {
-    formData.reference = reference
-  }
-
-  upsertParams.file = file
-  upsertParams.tag = tag
-  upsertParams.source = source
-  upsertParams.locales = locales
-  upsertParams.orgUnit = orgUnit
-  upsertParams.reference = reference
-
-  req('POST', `/api/v3/project/ci/${orgUnit}/${tag}`, null, null, formData, null)
+  req('POST', `/api/v3/project/ci/${params.unit}/${params.tag}`, null, null, formData, null)
 }
 
 function upsertCallback(asyncResponse) {
