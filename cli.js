@@ -110,15 +110,15 @@ program
   }).on('--help', function () {
     console.log('  Example:')
     console.log()
-    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml')
+    console.log('    $ bwx ci-upload -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml')
     console.log()
     console.log('    Forcing source and target languages:')
     console.log()
-    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
+    console.log('    $ bwx ci-upload -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
     console.log()
     console.log('    Forcing workflows:')
     console.log()
-    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -w TRANSLATION,PROOFREADING')
+    console.log('    $ bwx ci-upload -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -w TRANSLATION,PROOFREADING')
     console.log()
   })
 
