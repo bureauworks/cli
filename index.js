@@ -84,12 +84,12 @@ function req(method, endpoint, processCallback, body, formData, contentType, enc
 function login(configInput) {
 
   let data = {
-    'accesskey': configInput.api_id,
-    'secretAccesskey': configInput.api_secret
+    'accessKey': configInput.api_id,
+    'secret': configInput.api_secret
   }
 
   let options = {
-    uri: configInput.url + '/api/pub/v1/login',
+    uri: configInput.url + '/api/v3/auth',
     body: JSON.stringify(data),
     method: 'POST',
     resolveWithFullResponse: true,
@@ -193,18 +193,18 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
   req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
 }
 
-exports.uploadContinuousDeux = function (files, tag, source, locales, client, reference) {
-  if (files == null || files.length == 0) {
-    files = upsertParams.files
+exports.uploadContinuousDeux = function (file, tag, source, locales, orgUnit, reference) {
+  if (!file) {
+    file = upsertParams.file
     tag = upsertParams.tag
     source = upsertParams.source
     locales = upsertParams.locales
-    client = upsertParams.client
+    orgUnit = upsertParams.orgUnit
     reference = upsertParams.reference
   }
 
   let formData = {
-    files: files.map(el => fs.createReadStream(el))
+    file: fs.createReadStream(file)
   }
 
   if (source) {
@@ -219,14 +219,14 @@ exports.uploadContinuousDeux = function (files, tag, source, locales, client, re
     formData.reference = reference
   }
 
-  upsertParams.files = files
+  upsertParams.file = file
   upsertParams.tag = tag
   upsertParams.source = source
   upsertParams.locales = locales
-  upsertParams.client = client
+  upsertParams.orgUnit = orgUnit
   upsertParams.reference = reference
 
-  req('POST', `/api/v3/project/ci/${client}/${tag}`, null, null, formData, null)
+  req('POST', `/api/v3/project/ci/${orgUnit}/${tag}`, null, null, formData, null)
 }
 
 function upsertCallback(asyncResponse) {

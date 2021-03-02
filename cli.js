@@ -99,10 +99,10 @@ program
   .command('ci-upload')
   .description('Uploads a file to a continuous integration project. This method will use the client default source language and target languages unless you provide source and target languages in the options. Continuous are approved after a pre-estabilished schedule.')
   .option('-t, --tag <tag>', 'A tag to identify this project, e.g., ios, android, etc.')
-  .option('-c, --client <clientUUID>', 'The client UUID for the project')
+  .option('-u, --unit <orgUnitUUID>', 'The organizational unit UUID for the project')
   .option('-r, --reference <reference>', 'A mnemonic or coded reference for your record')
-  .option('-s, --source [source]', 'Optional, Source lang for the project')
-  .option('-f, --files <files>', 'The files in the current filesystem', list)
+  .option('-s, --source [source]', 'Optional, source lang for the project')
+  .option('-f, --file <file>', 'The file in the current filesystem')
   .option('-l, --locales [locales]', 'Optional, Project target languages, ISO codes separated by commas - if set, will override client-defined preset languages', list)
   .action(function (cmd, options) {
     handleContinuousDeux(cmd, options)
@@ -394,7 +394,7 @@ function handleContinuous(cmd) {
 }
 
 function handleContinuousDeux(cmd) {
-  bw.uploadContinuousDeux(cmd.files, cmd.tag, cmd.source, cmd.locales, cmd.client, cmd.reference)
+  bw.uploadContinuousDeux(cmd.file, cmd.tag, cmd.source, cmd.locales, cmd.unit, cmd.reference)
 }
 
 function handleReady(cmd) {
