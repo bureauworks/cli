@@ -202,7 +202,8 @@ exports.uploadContinuousDeux = function (params = {}) {
     file: fs.createReadStream(params.file),
     ...(!!params.source && { source: params.source }),
     ...(!!params.locales && { locales: params.locales }),
-    ...(!!params.reference && { reference: params.reference })
+    ...(!!params.reference && { reference: params.reference }),
+    ...(!!params.workflows && { workflows: params.workflows })
   }
 
   upsertParams = Object.assign(upsertParams, params)

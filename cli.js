@@ -104,16 +104,21 @@ program
   .option('-s, --source [source]', 'Optional, source lang for the project')
   .option('-f, --file <file>', 'The file in the current filesystem')
   .option('-l, --locales [locales]', 'Optional, Project target languages, ISO codes separated by commas - if set, will override client-defined preset languages', list)
+  .option('-w, --workflows [workflows]', 'Optional, UPPERCASE workflows separated by comma - if set, will override default recommendations', list)
   .action(function (cmd, options) {
     handleContinuousDeux(cmd, options)
   }).on('--help', function () {
     console.log('  Example:')
     console.log()
-    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml,./files/strings2.xml')
+    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml')
     console.log()
     console.log('    Forcing source and target languages:')
     console.log()
-    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml,./files/strings2.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
+    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
+    console.log()
+    console.log('    Forcing workflows:')
+    console.log()
+    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -w TRANSLATION,PROOFREADING')
     console.log()
   })
 
@@ -394,8 +399,8 @@ function handleContinuous(cmd) {
 }
 
 function handleContinuousDeux(cmd) {
-  const { file, tag, source, locales, unit, reference, ...rest} = cmd
-  bw.uploadContinuousDeux({ file, tag, source, locales, unit, reference })
+  const { file, tag, source, locales, unit, reference, workflows, ...rest} = cmd
+  bw.uploadContinuousDeux({ file, tag, source, locales, unit, reference, workflows })
 }
 
 function handleReady(cmd) {
