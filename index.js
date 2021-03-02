@@ -457,42 +457,20 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
   req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
 }
 
-exports.downloadContinuousDeux = function (filenames, resources, locales, status, clientUUID, tag) {
+exports.downloadContinuousDeux = function (params = {}) {
 
-  if (!clientUUID) { // this may happen if this method is invoked from the retry mechanism in callback
-    filenames = downloadParams.filenames
-    resources = downloadParams.resources
-    locales = downloadParams.locales
-    status = downloadParams.projectStatus
-    clientUUID = downloadParams.clientUUID
-    tag = downloadParams.tag
+  if (!params.unit) { // this may happen if this method is invoked from the retry mechanism in callback
+    params = Object.assign(params, downloadParams)
   }
   
-  let queryParams = {}
-
-  if (filenames != null) {
-    queryParams.filenames = filenames
-  }
-
-  if (resources != null) {
-    queryParams.resources = resources
-  }
-
-  if (locales != null) {
-    queryParams.locales = locales
-  }
-
-  if (status) {
-    queryParams.projectStatus = status
+  let queryParams = {
+    ...(!!params.filenames && { filenames: params.filenames }),
+    ...(!!params.locales && { locales: params.locales }),
+    ...(!!params.status && { projectStatus: params.status })
   }
 
   // Save inputs in global variables for retry attempts, if needed
-  downloadParams.filenames = filenames
-  downloadParams.resources = resources
-  downloadParams.locales = locales
-  downloadParams.projectStatus = status
-  downloadParams.clientUUID = clientUUID
-  downloadParams.tag = tag
+  downloadParams = Object.assign(downloadParams, params)
 
   function callback(response) {
 
@@ -514,7 +492,7 @@ exports.downloadContinuousDeux = function (filenames, resources, locales, status
     }
   }
 
-  req('GET', `/api/v3/project/ci/${clientUUID}/${tag}`, callback, null, queryParams, null, null)
+  req('GET', `/api/v3/project/ci/${params.unit}/${params.tag}/download`, callback, null, queryParams, null, null)
 }
 
 exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {

@@ -110,15 +110,15 @@ program
   }).on('--help', function () {
     console.log('  Example:')
     console.log()
-    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml')
+    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml')
     console.log()
     console.log('    Forcing source and target languages:')
     console.log()
-    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
+    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -s en_us -l pt_br,es_es,fr_fr,de_de')
     console.log()
     console.log('    Forcing workflows:')
     console.log()
-    console.log('    $ bwx continuous -c b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -w TRANSLATION,PROOFREADING')
+    console.log('    $ bwx continuous -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f ./files/strings.xml -w TRANSLATION,PROOFREADING')
     console.log()
   })
 
@@ -276,18 +276,17 @@ program
 program
   .command('ci-download')
   .description('Downloads translated files of a project')
-  .option('-c, --client <clientUUID>', 'The project uuid')
+  .option('-u, --unit <orgUnitUUID>', 'The project\'s organizational unit uuid')
   .option('-t, --tag <tag>', 'A tag that will identify the project in the pool of CI projects')
   .option('-f, --filenames [filenames]', 'Filters the translations for the given files', list)
   .option('-l, --locales [locales]', 'Filters the translations for the given locales', list)
-  .option('-r, --resources [resources]', 'Filters the translations for the given resources. You should provide a list of the UUIDS of the resources', list)
-  .option('-s, --status [status]', 'Filters the translations for the given project status')
+  .option('-s, --status [status]', 'Picks CI project with given status. Defaults to DRAFT and falls back to other statuses if not found')
   .action(function (cmd) {
     handleDownloadContinuousDeux(cmd)
   }).on('--help', function () {
     console.log('  Example:')
     console.log()
-    console.log('    $ bwx ci-download -p d23984e0-5c74-4f33-a1fb-5775a8de5b04 -f strings.xml,strings2.xml -l de_de,fr_fr,es_es -s APPROVED, -r 0a2c645e-f646-42e8-aa5e-bd4b44b306ad,fe105e51-805a-4b7f-8b07-4e468c7e02c4')
+    console.log('    $ bwx ci-download -u b8ef5505-b46d-41e3-9742-74a22a48dd97 -t android -f strings.xml,strings2.xml')
     console.log()
   })
 
@@ -448,7 +447,8 @@ function handleDownloadContinuous(cmd) {
 }
 
 function handleDownloadContinuousDeux(cmd) {
-  bw.downloadContinuousDeux(cmd.filenames, cmd.resources, cmd.locales, cmd.status, cmd.client, cmd.tag)
+  const { filenames, locales, status, unit, tag, ...rest} = cmd
+  bw.downloadContinuousDeux({ filenames, locales, status, unit, tag })
 }
 
 function handleDownloadContinuousByLanguage(cmd) {
