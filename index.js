@@ -84,12 +84,12 @@ function req(method, endpoint, processCallback, body, formData, contentType, enc
 function login(configInput) {
 
   let data = {
-    'accesskey': configInput.api_id,
-    'secretAccesskey': configInput.api_secret
+    'accessKey': configInput.api_id,
+    'secret': configInput.api_secret
   }
 
   let options = {
-    uri: configInput.url + '/api/pub/v1/login',
+    uri: configInput.url + '/api/v3/auth',
     body: JSON.stringify(data),
     method: 'POST',
     resolveWithFullResponse: true,
@@ -193,40 +193,22 @@ exports.uploadContinuous = function (file, tag, reference, languages) {
   req('POST', `/api/pub/v1/project/async/continuous/${tag}`, upsertCallback, null, formData, null)
 }
 
-exports.uploadContinuousDeux = function (files, tag, source, locales, client, reference) {
-  if (files == null || files.length == 0) {
-    files = upsertParams.files
-    tag = upsertParams.tag
-    source = upsertParams.source
-    locales = upsertParams.locales
-    client = upsertParams.client
-    reference = upsertParams.reference
+exports.uploadContinuousDeux = function (params = {}) {
+  if (!params.file) {
+    params = Object.assign(params, upsertParams)
   }
 
   let formData = {
-    files: files.map(el => fs.createReadStream(el))
+    file: fs.createReadStream(params.file),
+    ...(!!params.source && { source: params.source }),
+    ...(!!params.locales && { locales: params.locales }),
+    ...(!!params.reference && { reference: params.reference }),
+    ...(!!params.workflows && { workflows: params.workflows })
   }
 
-  if (source) {
-    formData.source = source
-  }
+  upsertParams = Object.assign(upsertParams, params)
 
-  if (locales) {
-    formData.locales = locales
-  }
-
-  if (reference) {
-    formData.reference = reference
-  }
-
-  upsertParams.files = files
-  upsertParams.tag = tag
-  upsertParams.source = source
-  upsertParams.locales = locales
-  upsertParams.client = client
-  upsertParams.reference = reference
-
-  req('POST', `/api/v3/project/ci/${client}/${tag}`, null, null, formData, null)
+  req('POST', `/api/v3/project/ci/${params.unit}/${params.tag}`, null, null, formData, null)
 }
 
 function upsertCallback(asyncResponse) {
@@ -475,42 +457,20 @@ exports.downloadContinuous = function (filename, tag, status, destinationPath) {
   req('GET', `/api/pub/v1/project/continuous/${tag}/${filename}/?status=${status}`, callback, null, null, null, null)
 }
 
-exports.downloadContinuousDeux = function (filenames, resources, locales, status, clientUUID, tag) {
+exports.downloadContinuousDeux = function (params = {}) {
 
-  if (!clientUUID) { // this may happen if this method is invoked from the retry mechanism in callback
-    filenames = downloadParams.filenames
-    resources = downloadParams.resources
-    locales = downloadParams.locales
-    status = downloadParams.projectStatus
-    clientUUID = downloadParams.clientUUID
-    tag = downloadParams.tag
+  if (!params.unit) { // this may happen if this method is invoked from the retry mechanism in callback
+    params = Object.assign(params, downloadParams)
   }
   
-  let queryParams = {}
-
-  if (filenames != null) {
-    queryParams.filenames = filenames
-  }
-
-  if (resources != null) {
-    queryParams.resources = resources
-  }
-
-  if (locales != null) {
-    queryParams.locales = locales
-  }
-
-  if (status) {
-    queryParams.projectStatus = status
+  let queryParams = {
+    ...(!!params.filenames && { filenames: params.filenames }),
+    ...(!!params.locales && { locales: params.locales }),
+    ...(!!params.status && { projectStatus: params.status })
   }
 
   // Save inputs in global variables for retry attempts, if needed
-  downloadParams.filenames = filenames
-  downloadParams.resources = resources
-  downloadParams.locales = locales
-  downloadParams.projectStatus = status
-  downloadParams.clientUUID = clientUUID
-  downloadParams.tag = tag
+  downloadParams = Object.assign(downloadParams, params)
 
   function callback(response) {
 
@@ -524,15 +484,37 @@ exports.downloadContinuousDeux = function (filenames, resources, locales, status
     }
 
     if (response.statusCode == 200) {
-      fs.writeFileSync('translations.zip', response.body)
-      console.log('Download completed successfully!')
+      let filename = !!params.output ? params.output : getFilenameFromHeaders(response.headers)
+      filename = addExtensionIfMissing(filename, ".zip")
+      fs.writeFileSync(filename, response.body)
+      console.log('Download completed: ' + filename )
       process.exit(0)
     } else {
       process.exitCode = 1
     }
   }
 
-  req('GET', `/api/v3/project/ci/${clientUUID}/${tag}`, callback, null, queryParams, null, null)
+  req('GET', `/api/v3/project/ci/${params.unit}/${params.tag}/download`, callback, null, queryParams, null, null)
+}
+
+function getFilenameFromHeaders (headers) {
+  if (!headers['content-disposition']) {
+    return null
+  }
+
+  const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+  const matches = headers['content-disposition'].match(filenameRegex)
+  if (matches != null && matches[1]) {
+    return matches[1].replace(/['"]/g, '')
+  }
+  return null
+}
+
+function addExtensionIfMissing(filename, extension) {
+  if (!filename.endsWith(extension)) {
+    return filename + extension
+  }
+  return filename
 }
 
 exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {
