@@ -484,8 +484,8 @@ exports.downloadContinuousDeux = function (params = {}) {
     }
 
     if (response.statusCode == 200) {
-      let filename = getFilenameFromHeaders(response.headers)
-      filename = !!filename ? filename : 'translations.zip'
+      let filename = !!params.output ? params.output : getFilenameFromHeaders(response.headers)
+      filename = addExtensionIfMissing(filename, ".zip")
       fs.writeFileSync(filename, response.body)
       console.log('Download completed: ' + filename )
       process.exit(0)
@@ -508,6 +508,13 @@ function getFilenameFromHeaders (headers) {
     return matches[1].replace(/['"]/g, '')
   }
   return null
+}
+
+function addExtensionIfMissing(filename, extension) {
+  if (!filename.endsWith(extension)) {
+    return filename + extension
+  }
+  return filename
 }
 
 exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {

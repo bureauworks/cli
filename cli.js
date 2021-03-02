@@ -281,6 +281,7 @@ program
   .option('-f, --filenames [filenames]', 'Filters the translations for the given files', list)
   .option('-l, --locales [locales]', 'Filters the translations for the given locales', list)
   .option('-s, --status [status]', 'Picks CI project with given status. Defaults to DRAFT and falls back to other statuses if not found')
+  .option('-o, --output [filename]', 'Filename of output. Will use server generated filename if undefined')
   .action(function (cmd) {
     handleDownloadContinuousDeux(cmd)
   }).on('--help', function () {
@@ -447,8 +448,8 @@ function handleDownloadContinuous(cmd) {
 }
 
 function handleDownloadContinuousDeux(cmd) {
-  const { filenames, locales, status, unit, tag, ...rest} = cmd
-  bw.downloadContinuousDeux({ filenames, locales, status, unit, tag })
+  const { filenames, locales, status, unit, tag, output, ...rest} = cmd
+  bw.downloadContinuousDeux({ filenames, locales, status, unit, tag, output })
 }
 
 function handleDownloadContinuousByLanguage(cmd) {
