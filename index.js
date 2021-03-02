@@ -484,8 +484,10 @@ exports.downloadContinuousDeux = function (params = {}) {
     }
 
     if (response.statusCode == 200) {
-      fs.writeFileSync('translations.zip', response.body)
-      console.log('Download completed successfully!')
+      let filename = getFilenameFromHeaders(response.headers)
+      filename = !!filename ? filename : 'translations.zip'
+      fs.writeFileSync(filename, response.body)
+      console.log('Download completed: ' + filename )
       process.exit(0)
     } else {
       process.exitCode = 1
@@ -493,6 +495,19 @@ exports.downloadContinuousDeux = function (params = {}) {
   }
 
   req('GET', `/api/v3/project/ci/${params.unit}/${params.tag}/download`, callback, null, queryParams, null, null)
+}
+
+function getFilenameFromHeaders (headers) {
+  if (!headers['content-disposition']) {
+    return null
+  }
+
+  const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+  const matches = headers['content-disposition'].match(filenameRegex)
+  if (matches != null && matches[1]) {
+    return matches[1].replace(/['"]/g, '')
+  }
+  return null
 }
 
 exports.downloadContinuousByLanguage = function (filename, tag, status, language, destinationPath) {
