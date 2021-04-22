@@ -7,7 +7,7 @@ You need a Bureau Works account and API KEY. Please visit https://www.bureauwork
 
 You will also need NodeJS and git installed in your environment.
 
-For API reference, please visit https://dev.bureau.works
+For API reference, please visit https://dev.bureauworks.com
 
 ## Installation
 
@@ -23,7 +23,7 @@ Make the CLI friends with your shell environment
 
 ```$ chmod +x cli.js```
 
-Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory. You can get an API KEY at https://bureau.works/#/my/account once you log in the system.
+Run the Configuration once - this will create a `config.json` file in your `~/.bwx/` directory. You can get an API KEY at https://app.bureau.works once you log in the system, under your Profile.
 
 ```$ ./cli.js config```
 
